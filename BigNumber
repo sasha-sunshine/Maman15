@@ -1,0 +1,293 @@
+/**
+ * This class convert a large number to object.
+ *
+ * @author Alexander Kostenko
+ * @ID *********
+ * @version 25.01.2021
+ */
+public class BigNumber{
+    private IntNode _tail;//create node head of the list
+    /**
+     * empty constructor
+     * add node with value 0
+     */
+    
+    public BigNumber(){
+        _tail = new IntNode(0, null);//one digit with value 0
+    }
+    /**
+     * consttructor get long number and put him in list
+     * @param num - input long num
+     */
+    public BigNumber(long num){
+     _tail = new IntNode((int) (num % 10), null);//getting last valau if last node
+     IntNode currentDigit = _tail;
+     while (num > 0){
+         currentDigit.setNext(new IntNode((int) (num % 10), null));//droping the last value of number step by step 
+         currentDigit = currentDigit.getNext();
+         num /= 10;
+        }
+    }
+    /**
+     * copy constructor
+     * @param BigNumber - get this list
+     */
+    public BigNumber(BigNumber other){
+          if (other != null){
+              IntNode otherCurrentDigit = other._tail;//create a node to travel the other BigNumber
+              _tail = new IntNode(otherCurrentDigit.getValue(), null);//add the last digit to this BigNumber
+              IntNode thisCurrentDigit = _tail;
+              otherCurrentDigit = otherCurrentDigit.getNext();//advance the other digit
+              while(otherCurrentDigit != null){
+                     //set the next digit of this BigNumber to to be the next digit of the other BigNUmber
+                     thisCurrentDigit.setNext(new IntNode(otherCurrentDigit.getValue(), null));
+                     //advance the current digit node
+                     thisCurrentDigit = thisCurrentDigit.getNext();
+                     //advance the other digit to add the next digit to the new number
+                     otherCurrentDigit = otherCurrentDigit.getNext();
+              }
+          }
+    }
+    /**
+     * return number from th list
+     */
+    public String toString(){
+        return toString(_tail);//call to the private method
+    }
+    /**
+     * private method with function to print the number
+     * @param IntNode a - node
+     * return - string of number
+     */
+    private String toString(IntNode node)
+    {
+        if (node != null)//if the node has a value
+        {int value = node.getValue();//keep the nodes value
+            //call the recursive function with the current nodes value at the end of the string
+            return toString(node.getNext()) + value;
+        }
+        //if no value than return an empty string
+        else
+            return "";
+    }
+    /**
+     * method to return comprasion of 2 long numbers
+     * @param BigNumber other - number to compare to
+     * returns -1 if other bigger; 1 if other smaller; 0 if eaual
+     */
+    public int compareTo(BigNumber other){
+        IntNode temp = _tail;
+        IntNode temp2 = other._tail;
+        while (temp!=null&&temp2!=null){//check if BigNumbers are empty
+            if (temp==null)//check if BigNumber is empty
+                return -1;
+            else if (temp2==null)//check if BigNumber oter is empty
+                return -1;
+            else if (temp.getValue()!=temp2.getValue())//check if BigNumber and BigNumber other are equals
+                return 0;
+            temp=temp.getNext();//next node from BigNumber
+            temp2=temp2.getNext();//next node from BigNumber other
+        }
+        return 1;
+    }
+    /**
+     * addition operation of two BigNumbers
+     * @param BigNumber other - other number BigNumber type
+     * @param d, digit, digit_2 - values from nodes to loop function
+     * return sum of two BigNumbers in list
+     */
+    public BigNumber addBigNumber (BigNumber other){
+        IntNode digit, digit_2, d = null;
+        BigNumber sum = new BigNumber (this);//add both digits
+        digit = sum._tail; digit_2 = other._tail;//the nodes to travel the digit lists
+        while (digit_2!=null)//keep adding as numbers got their digits
+        {
+            if (digit.getNext()==null)//check end of BigNumber
+            {
+                d = new IntNode (digit_2.getValue(),null);//value of BigNumber other
+                digit.setNext(d);//set next node of BigNumber
+                digit = digit.getNext();//advance the traveling digit nodes
+            }
+            else
+            {
+                digit.setValue(((digit.getValue()+digit_2.getValue())%10));//calculate the value, and the digit
+                if ((digit.getValue()+digit_2.getValue())>9)//check if sum>9
+                {
+                    if (digit.getNext()==null)//
+                    {
+                        d = new IntNode (digit_2.getValue(),null);
+                        digit.setNext(d);//set next node of BigNumber
+                    }
+                    else
+                    {
+                        digit.getNext().setValue(digit.getNext().getValue()+1);//add tens from the sum
+                    }
+                }
+                digit = digit.getNext(); //advance the traveling digit nodes
+            }
+            digit_2 = digit_2.getNext(); //advance the traveling digit nodes
+        }
+        return new BigNumber (sum);
+    }
+    /**
+     * addition BigNumber with long number
+     * @param long number - some number from long type
+     * return sum of them
+     */
+    public BigNumber addLong(long num){
+        BigNumber sum_long = new BigNumber (num);//create new BigNumber
+        return addBigNumber (sum_long);//call to the method addBigNumber
+    }
+    /**
+     * Gets a BigNumber and returns a BigNumber that is the subtraction of the bigger by the smaller one
+     * @param BigNumber other - other the number to subtract
+     * return - the subtraction of the bigger number by the smaller number
+     */
+    public BigNumber subtractBigNumber(BigNumber other){
+        BigNumber big;
+        BigNumber small;
+        int compareResult = compareTo(other);
+        if (compareResult > 0){//check which number is bigger in order to subtract the smaller from the bigger
+            big = this;//oither is smaller than this
+            small = other;
+        }
+        else if (compareResult == 0){
+            return new BigNumber();
+        }
+        else{
+            //other is bigger than this
+            big = other;
+            small = this;
+        }
+        BigNumber result = new BigNumber();
+        //nodes to travel the digit lists
+        IntNode bigCurrent = big._tail;
+        IntNode smallCurrent = small._tail;
+        IntNode resultCurrent = result._tail;
+        int difference, digit, zeroCounter = 0, borrow = 0;
+        difference = bigCurrent.getValue() - smallCurrent.getValue();//calculate the difference between the big number and the small number
+        if (difference < 0){//if the difference is negative borrow from the next digit of the big number
+            digit = 10 + difference;
+            borrow = 1;
+        }
+        else {
+            digit = difference;
+        }
+        //put the digit in the new BigNumber
+        resultCurrent.setValue(digit);
+        //advance the traveling digit nodes
+        bigCurrent = bigCurrent.getNext();
+        smallCurrent = smallCurrent.getNext();
+        while (smallCurrent != null && bigCurrent != null) {
+            //digit to set is the subtraction result minus the borrow from the subtraction before
+            difference = bigCurrent.getValue() - borrow - smallCurrent.getValue();
+            //if the difference is negative borrow from the next digit of the big number
+            if (difference < 0){
+                digit = 10 + difference;
+                borrow = 1;
+            }
+            else{
+                digit = difference;
+                borrow = 0;//if not borrowed from the next digit, reset the borrow variable
+            }
+            //check if the digit is zero to avoid removing zeroes at the end in case there is no more digits
+            if (digit == 0){
+                //digit is 0 count it instead of putting it in the BigNumber
+                zeroCounter++;
+            }
+            else{
+                //check if there are zeros to put before the digit, if the zero counter is larger than 0 it means
+                //some zeros were counted and not added to the BigNumber so they need to be added before the new digit
+                if (zeroCounter > 0){
+                    //put the required amount of zeroes before the digit
+                    while (zeroCounter > 0){
+                        resultCurrent.setNext(new IntNode(0, null));
+                        resultCurrent = resultCurrent.getNext();
+                        zeroCounter--;
+                    }
+                }
+                resultCurrent.setNext(new IntNode(digit, null));
+                //advance the result digit node
+                resultCurrent = resultCurrent.getNext();
+            }
+            //advance the traveling digit nodes
+            bigCurrent = bigCurrent.getNext();
+            smallCurrent = smallCurrent.getNext();
+        }
+        //at this state the method must have finished processing the smaller number
+        while (bigCurrent != null){//continue processing the digits of the bigger number if left
+            difference = bigCurrent.getValue() - borrow;
+            if (difference < 0){//if the value is negative borrow from the next digit of the big number
+                digit = 10 + difference;
+                borrow = 1;
+            }
+            else{
+                digit = difference;//if not borrowed from the next digit, reset the borrow variable
+                borrow = 0;
+            }
+            if (digit == 0){//check if the digit is zero
+                zeroCounter++;//f the digit is 0 count it instead of putting it in the BigNumber
+            }
+            else {
+                if (zeroCounter > 0){//check if there are zeros to put before the digit
+                    while (zeroCounter > 0){// put the required amount of zeroes before the digit
+                        resultCurrent.setNext(new IntNode(0, null));
+                        resultCurrent = resultCurrent.getNext();
+                        zeroCounter--;
+                    }
+                }
+                resultCurrent.setNext(new IntNode(digit, null));
+                resultCurrent = resultCurrent.getNext();//advance the result digit node
+            }
+            bigCurrent = bigCurrent.getNext();//advance with the digit node
+        }
+        return result;
+    }
+    /**
+     * multiplication of two BigNumbers
+     * @param BigNumber other - input other number to mupltiply
+     * return - result of multiplication
+     */
+    public BigNumber multBigNumber(BigNumber other){
+        BigNumber result = new BigNumber();
+        if (this.compareTo(result) == 0 || other.compareTo(result) == 0)//check if any of the factors are 0; if so return 0
+            return result;
+        IntNode resultDigitNode = result._tail;
+        IntNode resultDigitNodeMarker = result._tail;
+        IntNode thisDigitNode = this._tail;
+        IntNode otherDigitNode = other._tail;
+        while (thisDigitNode != null){//sum the product of every digit with every other digit
+            int thisDigit = thisDigitNode.getValue();
+            int digit;
+            int carry = 0;
+            resultDigitNode = resultDigitNodeMarker;//set the result digit node to the marker
+            while(otherDigitNode != null){//going over all of the other big number digits
+                int otherDigit = otherDigitNode.getValue();
+                int product = otherDigit * thisDigit + carry + resultDigitNode.getValue();//calculate the product of the digits
+                digit = product % 10;//calculate the carry to add in the next iteration
+                carry = product / 10;
+                resultDigitNode.setValue(digit);//put the right digit in the result digit node
+                //if this is the last digit of both numbers and there is no carry  don't create a new node
+                //for advance to a new node
+                if (thisDigitNode.getNext() == null && otherDigitNode.getNext() == null && carry == 0)
+                    break;
+                otherDigitNode = otherDigitNode.getNext();//advance with the digit node
+                if (resultDigitNode.getNext() == null)//check if the result big number has a next node; if not create it
+                {
+                    resultDigitNode.setNext(new IntNode(0,null));
+                }
+                resultDigitNode = resultDigitNode.getNext();
+            }
+            while (carry != 0)//if there is a carry left after the pass on other's digits, put the carry in the result
+            {
+                digit = carry % 10;
+                carry /= 10;
+                resultDigitNode.setValue(digit);
+            }
+            thisDigitNode = thisDigitNode.getNext();//advance with the this digit node
+            otherDigitNode = other._tail;//reset the other digit node
+            resultDigitNodeMarker = resultDigitNodeMarker.getNext();//advance with the result digit node marker
+        }
+        return result;
+    }
+}
